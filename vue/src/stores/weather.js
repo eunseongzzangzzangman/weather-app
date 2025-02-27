@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
     baseURL: 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline',
     params: {
         lang: 'ko',
-        key: '***************', 
+        key: '2Y43HCCRDQS2FJ6JUUV6BJ4ET', 
         unitGroup: 'metric',
     },
 });
@@ -16,6 +16,7 @@ export const useWeatherStore = defineStore('weather', () => {
     const address = ref('seoul'); // 초기 검색 지역
     const currentConditions = ref(null); // 현재 날씨 정보 데이터
     const days = ref(null); // 일별 날씨 객체가 담긴 배열
+    const searchData = ref([]); // 검색 날씨 데이터
 
     // 오늘 시간대별 데이터 계산
     const hours = computed(() => {
@@ -37,7 +38,38 @@ export const useWeatherStore = defineStore('weather', () => {
             alert(e.response?.data ? e.response?.data : e.message);
         }
     };
-    return { currentConditions, hours, getCurrentWeaterInfo };
+
+    // 미래 날짜의 날씨 예보 데이터 계산하기
+    const forecast = computed(() => {
+        return days.value?.filter((v) => v.datetime > dayjs().format('YYYY-MM-DD'));
+    });
+
+    // 지역명(city)으로 날씨 API 검색
+    const getSearchWeatherInfo = async (city) => {
+        try {
+            const res = await axiosInstance.get('/' + city)
+            // 응답 데이터 객체로 필요한 데이터 가공
+            const printData = {
+                address: res.data.address, // 지역명
+                feelslikemax: res.data.days[0].feelslikemax, // 최고 온도
+                feelslikemin: res.data.days[0].feelslikemin, // 최저 온도
+                icon: res.data.currentConditions.icon, // 날씨 아이콘
+                temp: res.data.currentConditions.temp, // 현재 온도
+            };
+            // 이미 추가한 지역이면 중복으로 추가하지 않기
+            if (
+                searchData.value.findIndex((v) => v.address === res.data.address) === -1
+            ) {
+                searchData.value.push(printData);
+            } else {
+                alert('이미 조회한 지역입니다ㅠㅠ');
+            }
+        } catch (e) {
+            alert(e.response?.data ? e.response?.data : e.message);
+        }
+    };
+
+    return { currentConditions, hours, forecast, searchData, getCurrentWeaterInfo, getSearchWeatherInfo, };
 });
 
 
