@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
     baseURL: 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline',
     params: {
         lang: 'ko',
-        key: '2Y43HCCRDQS2FJ6JUUV6BJ4ET', 
+        key: '****', 
         unitGroup: 'metric',
     },
 });
